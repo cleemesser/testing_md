@@ -1,0 +1,141 @@
+======================================================
+Looking for a robust plaintext python/reports language
+======================================================
+I think it is quite possible to add metadata reading and writing to notedown.
+I've created an issue regarding this and forked notedown as well.
+It also is probably worthwhile to try to stay compatile with pweave.
+
+- pweave http://mpastell.com/pweave/
+- r-markdown
+- spyder-reports
+- ob-ipython (org) https://github.com/gregsexton/ob-ipython
+- pandoc and many extensions
+
+in pweave [](http://mpastell.com/pweave/usage.html)
+```python
+```{python}
+```{.python}
+However options can only be defined in brackets:
+
+```{python, caption = "Some figure"}
+```
+
+A typical json cell with a markdown cell with a slideshow
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "slideshow": {
+     "slide_type": "slide"
+    }
+    },
+   "source": [
+    "## Introduction to visualizing data in the eeghdf files"
+   ]
+  }
+
+
+
+in pweave, the result of the expression will evaluated in place
+<%
+import matplotlib
+%>
+
+<%= %> result of expression will be printed tags. 
+
+
+- What is the best way to include a comment or metadata in markdown?
+  - how is this done in R-markdown
+  - should it remain markdown
+
+[comment]: # (This is a comment which will be ignored in markdown)
+
+or maybe
+[//]: # (This may be the most platform indepdent comment)
+
+
+
+--- R-markdown ---
+does not appear to use meta data
+
+## A simple proposal
+- store markdown metadata in "comments" abusing markdown's notation somewhat, for example could use
+```
+    [//]: # ("cell_type": "markdown", "metadata": { "slideshow": { "slide_type": "slide"} } )
+```
+- store code metadata in brackets, this is similiar to how pweave handles markdown source documents
+
+```{.python, "metadata" : {"collapsed": false, "slideshow": { "slide_type": "fragment"} } }
+import pandas
+
+y = 3 * 4
+
+```
+
+------
+per nbformat (http://nbformat.readthedocs.io/en/latest/format_description.html)
+
+the typical markdown cell json looks like this::
+{
+  "cell_type" : "markdown",
+  "metadata" : {},
+  "source" : "[multi-line *markdown*]",
+}
+
+typical code cell looks like
+
+{
+  "cell_type" : "code",
+  "execution_count": 1, # integer or null
+  "metadata" : {
+      "collapsed" : True, # whether the output of the cell is collapsed
+      "autoscroll": False, # any of true, false or "auto"
+  },
+  "source" : "[some multi-line code]",
+  "outputs": [{
+      # list of output dicts (described below)
+      "output_type": "stream",
+      ...
+  }],
+}
+
+{
+  "output_type" : "stream",
+  "name" : "stdout", # or stderr
+  "text" : "[multiline stream text]",
+}
+
+{
+  "cell_type" : "raw",
+  "metadata" : {
+    # the mime-type of the target nbconvert format.
+    # nbconvert to formats other than this will exclude this cell.
+    "format" : "mime/type"
+  },
+  "source" : "[some nbformat output text]"
+}
+
+#### Attachments
+
+{
+  "cell_type" : "markdown",
+  "metadata" : {},
+  "source" : ["Here is an *inline* image ![inline image](attachment:test.png)"],
+  "attachments" : {
+    "test.png": {
+        "image/png" : "base64-encoded-png-data"
+    }
+  }
+}
+
+#### Notebook level metadata
+- kernelspec dict
+- authors list of dicts
+
+nb.metadata.authors = [
+    {
+        'name': 'Fernando Perez',
+    },
+    {
+        'name': 'Brian Granger',
+    },
+]
